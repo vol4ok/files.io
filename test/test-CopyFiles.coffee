@@ -5,15 +5,16 @@
 ###
 
 ###* Module dependencies ###
-
-vows      = require 'vows'
-assert    = require 'assert'
-async     = require 'async'
-fs        = require 'fs'
-path      = require 'path'
-exec      = require('child_process').exec
-CopyFiles = require '../lib/files.io/copy-files'
-common    = require '../lib/files.io/common'
+            
+vows        = require 'vows'
+assert      = require 'assert'
+async       = require 'async'
+fs          = require 'fs'
+path        = require 'path'
+exec        = require('child_process').exec
+CopyFiles   = require '../lib/files.io/copy-files'
+RemoveFiles = require '../lib/files.io/remove-files'
+common      = require '../lib/files.io/common'
 
 {rand, randStr, makeDir} = common
 {normalize, basename, dirname, extname, join, existsSync, relative} = path

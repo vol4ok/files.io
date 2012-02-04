@@ -26,6 +26,8 @@ class RemoveFiles
     
   remove: (items) ->
     _items = []
+    unless _.isArray(items)
+      items = [items]
     for item in items 
       _items.push fs.realpathSync(item) if existsSync(item)
     for item in _items

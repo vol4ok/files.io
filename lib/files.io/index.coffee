@@ -7,6 +7,7 @@
 common      = require './common'
 CopyFiles   = require './copy-files'
 RemoveFiles = require './remove-files'
+async       = require 'async'
 
 {rand, randStr, makeDir} = common
 
@@ -18,11 +19,14 @@ RemoveFiles = require './remove-files'
 * @param {String} dst — destination directory or file
 * @param {Object} options
 ###
-copy = (src, dst, callback) -> 
-  new CopyFiles src, dst, 
-    replaceStrategy: CopyFiles.REPLACE
-    on_complete: (status, obj) ->
-      callback(status, obj.statistics)
+copy = (srcs, dst, callback) -> 
+  srcs = [srcs] if typeof srcs is 'string'
+  async.mapSeries srcs
+  , (src, cb) ->
+    new CopyFiles src, dst, 
+      replaceStrategy: CopyFiles.REPLACE
+      on_complete: cb
+  , callback
 
 ###*
 * Move file or directory
@@ -37,6 +41,7 @@ rename = (src, dst, options) -> #TODO
 * @param {Array|String} file — file or dir or array of files and dirs
 * @param {Object} options
 ###
-remove = (file, options) -> new RemoveFiles(file, options)
+remove = (file, options) -> 
+  new RemoveFiles(file, options)
 
 exports extends {copy, remove, makeDir}
