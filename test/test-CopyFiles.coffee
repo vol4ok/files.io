@@ -12,24 +12,37 @@ async     = require 'async'
 fs        = require 'fs'
 path      = require 'path'
 exec      = require('child_process').exec
-CopyFiles = require '../plugins/copy-files'
-helpers   = require '../lib/nbuild/helpers'
+CopyFiles = require '../lib/files.io/copy-files'
+common    = require '../lib/files.io/common'
 
-{rand, generateName, mkdirp, cleanDir, generateFiles} = helpers
+{rand, randStr, makeDir} = common
 {normalize, basename, dirname, extname, join, existsSync, relative} = path
 
-ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789'.split('')
-SRC_DIR  = '/tmp/test-copy-files/src'
-DST_DIR  = '/tmp/test-copy-files/dst'
+SRC_DIR  = './test-copy-files/src'
+DST_DIR  = './test-copy-files/dst'
 NUM_OF_FILES = 20
 FILE_SIZE_LIMIT = 1000
 
 g_createdDirs = []
 
-mkdirp(SRC_DIR, 0755, g_createdDirs)
-mkdirp(DST_DIR, 0755, g_createdDirs)
+makeDir(SRC_DIR, createdDirs: g_createdDirs)
+makeDir(DST_DIR, createdDirs: g_createdDirs)
 
-vows.describe('copy-files').addBatch({
+cleanDir = (path) ->
+  return unless existsSync(path)
+  for f in fs.readdirSync(path)
+    fs.unlinkSync(join(path,f))
+  
+generateFiles = (dir, count, maxSize, callback) ->
+  files = []
+  for i in [0...count]
+    files.push join(dir, randStr(10))
+  async.forEach files, (file, cb) -> 
+    exec "dd if=/dev/urandom of=#{file} bs=1 count=#{rand(maxSize)}", cb
+  , callback
+  return files
+
+vows.describe('CopyFiles class').addBatch({
   'basic copy':
     topic: -> 
       cleanDir(SRC_DIR)
@@ -38,16 +51,18 @@ vows.describe('copy-files').addBatch({
       return undefined
     'after generate':
       topic: ->
-        cp = new CopyFiles SRC_DIR, DST_DIR, 
+        cp = new CopyFiles SRC_DIR, DST_DIR,
           replaceStrategy: CopyFiles.REPLACE
           on_complete: @callback
         return undefined
-      'check files count': (stat, cp) -> 
+      'check status': (status, cp) ->
+        assert.equal status, CopyFiles.STATUS_SUCCESS
+      'check files count': (status, cp) -> 
         assert.equal fs.readdirSync(DST_DIR).length, fs.readdirSync(SRC_DIR).length
-      'check presence of files': (stat, cp) -> 
+      'check presence of files': (status, cp) -> 
         for f in fs.readdirSync(SRC_DIR)
           assert.isTrue(existsSync(join(DST_DIR, f)))
-      'check files size': (stat, cp) -> 
+      'check files size': (status, cp) -> 
         for f in fs.readdirSync(SRC_DIR)
           srcStat = fs.lstatSync(SRC_DIR)
           dstStat = fs.lstatSync(DST_DIR)

@@ -21,15 +21,20 @@ common = require './common'
 class CopyFiles
   
   # for internal use
-  STATUS_SUCCESS = 0
-  STATUS_PENDING = 1
-  STATUS_FAIL    = -1
-  STATUS_GET_STATS_FAILED = -2
+  STATUS_SUCCESS           =  0
+  STATUS_PENDING           =  1
+  STATUS_FAIL              = -1
+  STATUS_GET_STATS_FAILED  = -2
   STATUS_CREATE_DIR_FAILED = -3
+  STATUS_LIST_DIR_FAILED   = -4
   
   # for export
-  STATUS_SUCCESS: STATUS_SUCCESS
-  STATUS_FAIL :   STATUS_FAIL
+  STATUS_SUCCESS:            STATUS_SUCCESS
+  STATUS_FAIL:               STATUS_FAIL
+  STATUS_GET_STATS_FAILED:   STATUS_GET_STATS_FAILED 
+  STATUS_CREATE_DIR_FAILED:  STATUS_CREATE_DIR_FAILED
+  STATUS_LIST_DIR_FAILED:    STATUS_LIST_DIR_FAILED  
+  
   
   # for internal use
   REPLACE       = 0
@@ -90,7 +95,7 @@ class CopyFiles
     @contextList = []
     @transferQueue = []
     @eventEmitter = new EventEmitter()
-    @eventEmitter.on('complete',     @options.on_complete)  if _.isFunction(@options.on_complete)
+    @eventEmitter.on('complete',  @options.on_complete)  if _.isFunction(@options.on_complete)
     @eventEmitter.on('copyBegan', @options.on_copyBegan) if _.isFunction(@options.on_copyBegan)
     @eventEmitter.on('copyEnded', @options.on_copyEnded) if _.isFunction(@options.on_copyEnded)
     @eventEmitter.on('error',     @options.on_error)     if _.isFunction(@options.on_error)
@@ -118,17 +123,11 @@ class CopyFiles
       @eventEmitter.on(event, listener)
     else
       throw 'Error: unknown event'
-      
-  ###
-  * @public
-  * @alias on
-  ###
-  bind: -> @on
     
   ###
   * @private
   ###
-  _complete: (status) -> @eventEmitter.emit('complete', this)
+  _complete: (status) -> @eventEmitter.emit('complete', status, this)
     
   ###
   * @private

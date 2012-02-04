@@ -12,10 +12,12 @@ async     = require 'async'
 fs        = require 'fs'
 path      = require 'path'
 exec      = require('child_process').exec
-CopyFiles = require '../lib/files.io/copy-files'
+io        = require '../lib/files.io'
 common    = require '../lib/files.io/common'
 
-{rand, randStr, makeDir} = common
+
+{rand, randStr} = common
+{copy, remove, makeDir} = io
 {normalize, basename, dirname, extname, join, existsSync, relative} = path
 
 SRC_DIR  = './test-copy-files/src'
@@ -42,7 +44,7 @@ generateFiles = (dir, count, maxSize, callback) ->
   , callback
   return files
 
-vows.describe('copy-files').addBatch({
+vows.describe('CopyFiles class').addBatch({
   'basic copy':
     topic: -> 
       cleanDir(SRC_DIR)
@@ -51,16 +53,14 @@ vows.describe('copy-files').addBatch({
       return undefined
     'after generate':
       topic: ->
-        cp = new CopyFiles SRC_DIR, DST_DIR, 
-          replaceStrategy: CopyFiles.REPLACE
-          on_complete: @callback
+        copy SRC_DIR, DST_DIR, @callback
         return undefined
-      'check files count': (stat, cp) -> 
+      'check files count': (status, statistics) -> 
         assert.equal fs.readdirSync(DST_DIR).length, fs.readdirSync(SRC_DIR).length
-      'check presence of files': (stat, cp) -> 
+      'check presence of files': (status, statistics) -> 
         for f in fs.readdirSync(SRC_DIR)
           assert.isTrue(existsSync(join(DST_DIR, f)))
-      'check files size': (stat, cp) -> 
+      'check files size': (status, statistics) -> 
         for f in fs.readdirSync(SRC_DIR)
           srcStat = fs.lstatSync(SRC_DIR)
           dstStat = fs.lstatSync(DST_DIR)

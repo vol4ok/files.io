@@ -17,7 +17,7 @@ ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789'.split('')
 ###*
 * Generate random number from 0..n
 * 
-* @api
+* @exports
 * @param {Number} n
 ###
 
@@ -26,7 +26,7 @@ rand = (n) -> Math.floor(Math.random()*n)
 ###*
 * Generate random string
 *
-* @api
+* @exports
 * @param {Number} length
 * @param {Array} alphabet
 ###
@@ -41,8 +41,8 @@ randStr = (length, alphabet = ALPHABET) ->
 * Create directory with intermediate directories as required
 *
 * @api
-* @param {Number} length
-* @param {Array} alphabet
+* @param {String} path
+* @param {Object} options
 ###
 
 makeDir = (path, options = {}) -> 
